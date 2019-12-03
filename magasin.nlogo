@@ -1,29 +1,29 @@
-;; E. Adam, Univ Valenciennes
-;;
-;; évacuation d'un grand amphi
-;; cas de 4 sorties avec degre d'impatience chez les agents
-;;
+;;Simulation d'un magasin
 
 ;;variables globales
 ;; position de l'entrée-sortie
+;; position de la caisse
 globals [
-porte-x porte-y
+  porte-x porte-y
+  caisse-x caisse-y
 ]
 
 ;;variables de cellules :
-;; la case correspond a une table, a une sortie, sinon a un espace vide
+;; la case correspond a une rayon, une sortie, une caisse sinon un espace vide
 patches-own [
-  table?
+  rayon?
   sortie?
 ]
 
-;; les etudiants
-breed[etudiants etu]
+;; les clients
+breed[clients client]
 
-;; les agents ont un point d'arrivee
-;; et visent leurs cases suivantes
-;; compte le nb de pas qu'ils sont bloques
-etudiants-own[
+;; Les agents ont une liste de produit à voir
+;; Ils peuvent acheter au moins un produit
+;; Ils ont une destination en fonction des produits restants à voir et s'ils ont un achat à régler
+clients-own[
+  listeVoir
+  achat?
   arrivee-x arrivee-y
   caseSuivante
   bloque
@@ -34,22 +34,23 @@ etudiants-own[
 ;;initialiser
 to setup
   clear-all
-  initialiserTables
+  initialiserrayons
   initialiserSorties
+  initialiserCaisses
   initialiserAgents
 end
 
-;; dessins des tables
-to initialiserTables
+;; dessins des rayons
+to initialiserrayons
   ask patches
     [
-      set table? false
+      set rayon? false
       set sortie? false
       ifelse pycor >= -46 and  pycor <= 40
         and pxcor >= -17 and  pxcor <= 17
         and (pxcor <= -4 or  pxcor >= 4)
-        and (pycor mod 3 = 0 or pycor mod 3 = 1)
-          [ tableCell ]
+        and (pycor mod 3 = 0)
+          [ rayonCell ]
           [ libreCell ] ]
 end
 
@@ -57,15 +58,22 @@ end
 to initialiserSorties
   ask patches
     [ if (pycor = 50
-        and ((pxcor >= -25 and  pxcor <= -17)
-        or ((pxcor >= 17 and  pxcor <= 25))))
-        or (pycor = -50
-        and ((pxcor >= -25 and  pxcor <= -21)
-        or ((pxcor >= 21 and  pxcor <= 25))))
+        and (pxcor >= -5 and pxcor <= 5))
           [ sortieCell ]]
 
-  set porte-x -21
+  set porte-x 0
   set porte-y 50
+end
+
+;; dessins des caisses
+to initialiserCaisses
+  ask patches
+    [ if (pycor = 50
+        and (pxcor >= 17 and pxcor <= 25))
+          [ caisseCell ]]
+
+  set caisse-x 21
+  set caisse-y 50
 end
 
 ;;initialisation des agents
@@ -74,7 +82,7 @@ end
 to initialiserAgents
   let xi  0
   let yi  0
-  create-etudiants nbAgents
+  create-clients nbAgents
   [
     if xi = 14
       [set xi xi + 7]
@@ -101,9 +109,9 @@ to chercherSortie
 end
 
 
-;; table  -> couleur de cellule
-to tableCell
-  set table? true
+;; rayon  -> couleur de cellule
+to rayonCell
+  set rayon? true
   set pcolor white
 end
 
@@ -113,9 +121,15 @@ to sortieCell
   set pcolor red
 end
 
+;; caisse -> couleur de caisse
+to caisseCell
+  set sortie? true
+  set pcolor blue
+end
+
 ;; libre  -> couleur du fond
 to libreCell
-  set table? false
+  set rayon? false
   set pcolor black
 end
 
@@ -135,7 +149,7 @@ to go
           ;; avancer si possible
          ifelse caseSuivante != nobody
            [ifelse  not any? turtles-on caseSuivante
-            [ifelse not [table?] of caseSuivante
+            [ifelse not [rayon?] of caseSuivante
              [ setxy ([pxcor] of caseSuivante) ([pycor] of caseSuivante)
                set bloque  0
               ]
@@ -177,20 +191,20 @@ end
 
 
 ;; turtle procedure
-;; correction du chemin si la case suivante existe et qu'il s'agit d'une table, choisir une autre case
-;; de mm si il existe un etu sur la case suivante
+;; correction du chemin si la case suivante existe et qu'il s'agit d'une rayon, choisir une autre case
+;; de même si il existe un client sur la case suivante
 to corriger-chemin
   if (heading < 90) or (heading >= 180 and  heading <= 270)
   [
    if caseSuivante != nobody
-   [ ifelse [table?] of caseSuivante
+   [ ifelse [rayon?] of caseSuivante
      [ set caseSuivante patch-left-and-ahead 45 1
        if  caseSuivante != nobody
-         [ if [table?] of caseSuivante
+         [ if [rayon?] of caseSuivante
            [ set caseSuivante patch-right-and-ahead 45 1
              if  caseSuivante != nobody
              [
-               if [table?] of caseSuivante
+               if [rayon?] of caseSuivante
                  [ set caseSuivante patch-right-and-ahead 90 1] ]]]]
       [
       if any? turtles-on caseSuivante
@@ -206,14 +220,14 @@ to corriger-chemin
   if (heading > 270) or (heading >= 90 and heading < 180)
   [
    if caseSuivante != nobody
-   [ ifelse [table?] of caseSuivante
+   [ ifelse [rayon?] of caseSuivante
      [ set caseSuivante patch-right-and-ahead 45 1
        if  caseSuivante != nobody
-         [ if [table?] of caseSuivante
+         [ if [rayon?] of caseSuivante
            [ set caseSuivante patch-left-and-ahead 45 1
              if  caseSuivante != nobody
              [
-               if [table?] of caseSuivante
+               if [rayon?] of caseSuivante
                  [ set caseSuivante patch-left-and-ahead 90 1] ]]]]
       [
       if any? turtles-on caseSuivante
@@ -245,8 +259,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -25
 25
@@ -267,7 +281,7 @@ nbAgents
 nbAgents
 1
 812
-812.0
+1.0
 1
 1
 NIL
@@ -312,8 +326,8 @@ MONITOR
 377
 1028
 422
-etudiants presents
-count etudiants
+clients presents
+count clients
 17
 1
 11
