@@ -54,8 +54,9 @@ to initialiserRayons
         and (pxcor <= -4 or  pxcor >= 4)
         and (pycor mod 3 = 0)
       [ rayonCell ]
-      [ ifelse (pxcor = -11 or pxcor = 11)
-  and pycor >= -46 and pycor <= 40
+      [ ifelse (pxcor >= -17 and  pxcor <= 17)
+        and (pxcor <= -4 or  pxcor >= 4)
+        and pycor >= -46 and pycor <= 40
         and (pycor mod 3 = 1 or pycor mod 3 = 2)
         [ produitCell ]
         [ libreCell ]
@@ -86,12 +87,10 @@ to initialiserCaisses
 end
 
 ;;initialisation des agents
-;; création de 'nbagents', de couleur jaune,
-;; attablés qui pointent vers 1 seule sortie
 to initialiserAgents
   let xi  0
   let yi  0
-  create-clients 1
+  create-clients nbAgents
   [
     if xi = 14
       [set xi xi + 7]
@@ -100,7 +99,8 @@ to initialiserAgents
         set yi yi + 3
       ]
     ;; variation sur le jaune
-    set achat? true
+    set achat? false
+    set listeVoir (random numeroProduit) + 1
     set color yellow - 2 + random 7
     setxy (xi - 17) (38 - yi )
     set xi xi + 1
@@ -111,17 +111,27 @@ to initialiserAgents
   ]
 end
 
+;; Calcul de la destination
 to chercherDest
   let dxi  arrivee-x
   let dyi  arrivee-y
-  ifelse achat? = true
+  ifelse listeVoir = 0
   [
-    set arrivee-x caisse-x
-    set arrivee-y caisse-y
+    ifelse achat? = true
+    [
+      set arrivee-x caisse-x
+      set arrivee-y caisse-y
+    ]
+    [
+      set arrivee-x porte-x
+      set arrivee-y porte-y
+    ]
   ]
   [
-    set arrivee-x porte-x
-    set arrivee-y porte-y
+    let n listeVoir
+    let p one-of (patches with [produit = n])
+    set arrivee-x [pxcor] of p
+    set arrivee-y [pycor] of p
   ]
 end
 
@@ -131,7 +141,7 @@ to rayonCell
   set rayon? true
   set sortie? false
   set caisse? false
-  set produit 0
+  set produit -1
   set pcolor white
 end
 
@@ -140,7 +150,7 @@ to sortieCell
   set rayon? false
   set sortie? true
   set caisse? false
-  set produit 0
+  set produit -1
   set pcolor red
 end
 
@@ -149,7 +159,7 @@ to caisseCell
   set rayon? false
   set sortie? false
   set caisse? true
-  set produit 0
+  set produit -1
   set pcolor blue
 end
 
@@ -168,7 +178,7 @@ to libreCell
   set rayon? false
   set sortie? false
   set caisse? false
-  set produit 0
+  set produit -1
   set pcolor black
 end
 
@@ -203,6 +213,12 @@ to go
     [
       if (distancexy arrivee-x arrivee-y) > 4
       [chercherDest]
+    ]
+    if [produit] of patch-here = listeVoir
+    [
+      set achat? true
+      set listeVoir 0
+      chercherDest
     ]
 
     ;; arrive à la caisse : direction la sortie
@@ -378,6 +394,21 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+949
+98
+1121
+131
+nbAgents
+nbAgents
+1
+300
+31.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 WHAT IS IT?
