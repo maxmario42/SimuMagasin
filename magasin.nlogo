@@ -3,16 +3,20 @@
 ;;variables globales
 ;; position de l'entrée-sortie
 ;; position de la caisse
+;; numéro du produit
 globals [
   porte-x porte-y
   caisse-x caisse-y
+  numeroProduit
 ]
 
 ;;variables de cellules :
-;; la case correspond a une rayon, une sortie, une caisse sinon un espace vide
+;; la case correspond a une rayon, une sortie, une caisse, un produit sinon un espace vide
 patches-own [
   rayon?
   sortie?
+  caisse?
+  produit
 ]
 
 ;; les clients
@@ -29,19 +33,18 @@ clients-own[
   bloque
 ]
 
-
-
 ;;initialiser
 to setup
   clear-all
-  initialiserrayons
+  set numeroProduit 1
+  initialiserRayons
   initialiserSorties
   initialiserCaisses
   initialiserAgents
 end
 
-;; dessins des rayons
-to initialiserrayons
+;; dessins des rayons et des produits
+to initialiserRayons
   ask patches
     [
       set rayon? false
@@ -50,8 +53,14 @@ to initialiserrayons
         and pxcor >= -17 and  pxcor <= 17
         and (pxcor <= -4 or  pxcor >= 4)
         and (pycor mod 3 = 0)
-          [ rayonCell ]
-          [ libreCell ] ]
+      [ rayonCell ]
+      [ ifelse (pxcor = -11 or pxcor = 11)
+  and pycor >= -46 and pycor <= 40
+        and (pycor mod 3 = 1 or pycor mod 3 = 2)
+        [ produitCell ]
+        [ libreCell ]
+  ]
+  ]
 end
 
 ;; dessins des sorties
@@ -123,8 +132,16 @@ end
 
 ;; caisse -> couleur de caisse
 to caisseCell
-  set sortie? true
+  set caisse? true
   set pcolor blue
+end
+
+;; produit  -> couleur du produit
+to produitCell
+  set rayon? false
+  set produit numeroProduit
+  set numeroProduit numeroProduit + 1
+  set pcolor green
 end
 
 ;; libre  -> couleur du fond
@@ -137,7 +154,7 @@ end
 to go
   if not any? turtles [ stop ]
    ask turtles
-     [   ;; faire face à la sortie
+     [   ;; faire face à sa destination
          facexy arrivee-x arrivee-y
 
          ;; calcul de la case suivante
@@ -163,17 +180,15 @@ to go
               [chercherSortie]
           ]
 
-           ;; arrive � la sortie : mourir
+           ;; arrive à la sortie : mourir
          if [sortie?] of patch-here
            [die]
 
     ]
-
-
 end
 
-
-;; turtle procedure; calcul de la prochaine case
+;; turtle procedure
+;; calcul de la prochaine case
 ;; fonction à donner en début de TP, voir la doc de NetLogo
 ;; et l'exemple NextPatch des Exempes de Code de la lirairie des mod�les
 to-report next-patch
