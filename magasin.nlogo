@@ -86,12 +86,12 @@ to initialiserCaisses
 end
 
 ;;initialisation des agents
-;; cr�ation de 'nbagents', de couleur jaune,
-;; attabl�s qui pointent vers 1 seule sortie
+;; création de 'nbagents', de couleur jaune,
+;; attablés qui pointent vers 1 seule sortie
 to initialiserAgents
   let xi  0
   let yi  0
-  create-clients nbAgents
+  create-clients 1
   [
     if xi = 14
       [set xi xi + 7]
@@ -100,45 +100,64 @@ to initialiserAgents
         set yi yi + 3
       ]
     ;; variation sur le jaune
+    set achat? true
     set color yellow - 2 + random 7
     setxy (xi - 17) (38 - yi )
     set xi xi + 1
     set arrivee-x 10000
     set arrivee-y 10000
     set bloque 0
-    chercherSortie
+    chercherDest
   ]
 end
 
-to chercherSortie
-    let dxi  arrivee-x
-    let dyi  arrivee-y
+to chercherDest
+  let dxi  arrivee-x
+  let dyi  arrivee-y
+  ifelse achat? = true
+  [
+    set arrivee-x caisse-x
+    set arrivee-y caisse-y
+  ]
+  [
     set arrivee-x porte-x
     set arrivee-y porte-y
+  ]
 end
 
 
 ;; rayon  -> couleur de cellule
 to rayonCell
   set rayon? true
+  set sortie? false
+  set caisse? false
+  set produit 0
   set pcolor white
 end
 
 ;; sortie -> couleur de sortie
 to sortieCell
+  set rayon? false
   set sortie? true
+  set caisse? false
+  set produit 0
   set pcolor red
 end
 
 ;; caisse -> couleur de caisse
 to caisseCell
+  set rayon? false
+  set sortie? false
   set caisse? true
+  set produit 0
   set pcolor blue
 end
 
 ;; produit  -> couleur du produit
 to produitCell
   set rayon? false
+  set sortie? false
+  set caisse? false
   set produit numeroProduit
   set numeroProduit numeroProduit + 1
   set pcolor green
@@ -147,43 +166,54 @@ end
 ;; libre  -> couleur du fond
 to libreCell
   set rayon? false
+  set sortie? false
+  set caisse? false
+  set produit 0
   set pcolor black
 end
 
 
 to go
-  if not any? turtles [ stop ]
-   ask turtles
-     [   ;; faire face à sa destination
-         facexy arrivee-x arrivee-y
+  if not any? turtles [
+    stop
+  ]
+  ask turtles
+  [
+    ;; faire face à sa destination
+    facexy arrivee-x arrivee-y
 
-         ;; calcul de la case suivante
-         set caseSuivante next-patch
+    ;; calcul de la case suivante
+    set caseSuivante next-patch
 
-         ;;corriger la direction si besoin
-         corriger-chemin
+    ;;corriger la direction si besoin
+    corriger-chemin
 
-          ;; avancer si possible
-         ifelse caseSuivante != nobody
-           [ifelse  not any? turtles-on caseSuivante
-            [ifelse not [rayon?] of caseSuivante
-             [ setxy ([pxcor] of caseSuivante) ([pycor] of caseSuivante)
-               set bloque  0
-              ]
-             [ set bloque bloque + 1 ] ]
-            [set bloque bloque + 1]]
-           [ set bloque bloque + 1]
+    ;; avancer si possible
+    ifelse caseSuivante != nobody
+    [ifelse  not any? turtles-on caseSuivante
+      [ifelse not [rayon?] of caseSuivante
+        [ setxy ([pxcor] of caseSuivante) ([pycor] of caseSuivante)
+          set bloque  0
+        ]
+        [ set bloque bloque + 1 ] ]
+      [set bloque bloque + 1]]
+    [ set bloque bloque + 1]
 
-          if (bloque >= 3 )
-          [
-            if (distancexy arrivee-x arrivee-y) > 4
-              [chercherSortie]
-          ]
+    if (bloque >= 3 )
+    [
+      if (distancexy arrivee-x arrivee-y) > 4
+      [chercherDest]
+    ]
 
-           ;; arrive à la sortie : mourir
-         if [sortie?] of patch-here
-           [die]
-
+    ;; arrive à la caisse : direction la sortie
+    if [caisse?] of patch-here
+    [
+      set achat? false
+      chercherDest
+    ]
+    ;; arrive à la sortie : mourir
+    if [sortie?] of patch-here
+    [die]
     ]
 end
 
@@ -286,21 +316,6 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
-
-SLIDER
-1004
-91
-1176
-124
-nbAgents
-nbAgents
-1
-812
-1.0
-1
-1
-NIL
-HORIZONTAL
 
 BUTTON
 851
