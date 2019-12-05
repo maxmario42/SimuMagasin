@@ -98,7 +98,6 @@ to initialiserAgents
       [ set xi 0
         set yi yi + 3
       ]
-    ;; variation sur le jaune
     set achat? false
     set listeVoir (random numeroProduit) + 1
     set color yellow - 2 + random 7
