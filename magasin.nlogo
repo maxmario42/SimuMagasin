@@ -302,8 +302,6 @@ to corriger-chemin
    ]
 
 end
-
-;;FIN
 @#$#@#$#@
 GRAPHICS-WINDOW
 157
@@ -417,58 +415,9 @@ This project models the behavior of ants following a leader towards a food sourc
 Even though the leader may take a very circuitous path towards the food, the ant trail, surprisingly, adopts a smooth shape. While it is not yet clear if this model is a biologically accurate model of ant behavior, it is an interesting mathematical exploration of the emergent behavior of a series of agents following each other serially.
 
 
-HOW TO USE IT
--------------
-The SETUP button initializes the model. A brown ant nest is placed on the left side of the world. Inside it are a number of ants (yellow) determined by the NUM-ANTS slider. On the right hand of the world is an orange source of food.
-
-The GO button starts the ants moving. The leader ant (turtle 0) is set in motion roughly in the direction of the food. It wiggles as it moves. That is, it does not head directly towards the food, but changes its heading a random amount to the left or right before it takes each step.
-
-The maximum amount the leader ant can wiggle at each step (and therefore the raggedness of the leader ant's path) is governed by the LEADER-WIGGLE-ANGLE slider. When the leader ant gets close enough to the food to "smell" it, it stops wiggling and heads directly for the food. The leader ant leaves a red trace as it moves.
-
-Each subsequent ant follows the ant ahead of it by heading directly towards it before it takes each step. The follower ants do not leave a trace. The yellow line of ants, however, traces out a curve in the drawing. The last ant to go leaves a blue trace.
-
-The amount of time between ants departing their nest is governed by the START-DELAY slider (plus some random factor).
-
-The ANTS-RELEASED monitor shows you how many ants have left the nest. The other monitor shows you the heading of the lead ant.
-
-
-THINGS TO NOTICE
-----------------
-How does the shape of the ant line change over time?
-
-How does the path of the initial ant compare with the path of the final ant?
-
-
-THINGS TO TRY
--------------
-Try varying the maximum wiggle angle (LEADER-WIGGLE-ANGLE). How does that affect the shape of initial and final ant lines?
-
-Try varying the delay. How does that affect the shape of initial and final ant lines?
-
-How can you slow down the flattening out of the ant line? Can you make the path fail to converge to a straight line?
-
-How can you speed up the flattening out of the ant line?
-
-
-EXTENDING THE MODEL
--------------------
-How might you keep track of, measure, or plot the flattening process?
-
-What if you relaxed the ant following rules -- maybe add some "wiggle" to their behavior?
-
-
-NETLOGO FEATURES
------------------
-In NetLogo, the default behavior of the ants is to move in parallel.  Notice the use of delays based on turtle ids in the TIME-TO-START? reporter to make the turtles leave the nest serially.
-
-
-CREDITS AND REFERENCES
-------------------------
-The model was inspired by the work of Alfred Bruckstein (see Bruckstein 1993: "Why the ant trails look so straight and nice", The Mathematical Intelligencer, Vol. 15, No. 2).
-
-To refer to this model in academic publications, please use:  Wilensky, U. (1997).  NetLogo Ant Lines model.  http://ccl.northwestern.edu/netlogo/models/AntLines.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
-
-In other publications, please use:  Copyright 1997 Uri Wilensky.  All rights reserved.  See http://ccl.northwestern.edu/netlogo/models/AntLines for terms of use.
+READ THIS !
+-----------
+http://www.cs.us.es/~fsancho/?e=131
 @#$#@#$#@
 default
 true
