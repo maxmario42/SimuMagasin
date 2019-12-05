@@ -43,9 +43,9 @@ links-own [
 
 to-report applicable-transitions
   report (list
-           (list "*3" 1 (task [? * 3]))
-           (list "+7" 1 (task [? + 7]))
-           (list "-2" 1 (task [? - 2]))
+           (list "*3" 1 ([ ?1 -> ?1 * 3 ]))
+           (list "+7" 1 ([ ?1 -> ?1 + 7 ]))
+           (list "-2" 1 ([ ?1 -> ?1 - 2 ]))
            )
 end
 
@@ -61,8 +61,8 @@ end
 ; states that are valid.
 
 to-report children-states
-  report filter [valid? (first ?)]
-                (map [(list (run-result (last ?) content) ?)]
+  report filter [ ?1 -> valid? (first ?1) ]
+                (map [ ?1 -> (list (run-result (last ?1) content) ?1) ]
                      applicable-transitions)
 end
 
@@ -195,9 +195,9 @@ end
 ; Create dinamically the neighbors of s
 to create-neighbor-states [s]
   ask s [
-    foreach children-states [
-      let ns first ?
-      let r last ?
+    foreach children-states [ ?1 ->
+      let ns first ?1
+      let r last ?1
       ifelse not any? states with [content = ns]
       [
         hatch-states 1 [
@@ -226,8 +226,8 @@ end
 ; Auxiliary procedure the highlight the path when it is found. It makes use of reduce procedure with
 ; highlight report
 to highlight-path [path]
-  foreach path [
-    ask ? [
+  foreach path [ ?1 ->
+    ask ?1 [
       set color yellow set thickness .4
     ]
   ]
@@ -248,17 +248,17 @@ to test
   if path != false [
     ;repeat 1000 [layout-spring states links 1 3 .3]
     highlight-path path
-    show map [first [rule] of ?] path]
+    show map [ ?1 -> first [rule] of ?1 ] path]
   show max [who] of turtles - count states
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-649
-470
-16
-16
+647
+448
+-1
+-1
 13.0
 1
 10
@@ -305,7 +305,7 @@ Initial
 Initial
 0
 100
-2
+2.0
 1
 1
 NIL
@@ -320,7 +320,7 @@ Final
 Final
 0
 100
-92
+92.0
 1
 1
 NIL
@@ -337,9 +337,8 @@ circle
 false
 0
 Circle -7500403 true true 0 0 300
-
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -355,7 +354,6 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 0
 @#$#@#$#@

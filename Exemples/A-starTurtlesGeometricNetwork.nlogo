@@ -148,10 +148,10 @@ end
 GRAPHICS-WINDOW
 210
 10
-649
-470
-16
-16
+647
+448
+-1
+-1
 13.0
 1
 10
@@ -178,7 +178,7 @@ BUTTON
 85
 109
 NIL
-setup\n
+setup
 NIL
 1
 T
@@ -230,7 +230,7 @@ Num-Nodes
 Num-Nodes
 0
 1000
-1000
+1000.0
 50
 1
 NIL
@@ -247,9 +247,8 @@ circle
 false
 0
 Circle -7500403 true true 0 0 300
-
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -265,7 +264,6 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 0
 @#$#@#$#@

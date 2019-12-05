@@ -57,7 +57,7 @@ end
 
 to-report children-states
   let indexes [0 1 2]
-  report (map [(list (transp ? content) (list (word "T-" ?1) 1 ?))] indexes)
+  report (map [ ?1 -> (list (transp ?1 content) (list (word "T-" ?1) 1 ?1)) ] indexes)
 end
 
 ; final-state? is a state report that identifies the final states for the problem.
@@ -65,14 +65,14 @@ end
 ; equal to the Final State). It allows the use of parameters because maybe the
 ; verification of reaching the goal depends on some extra information from the problem.
 to-report final-state? [params]
-  report ( reduce and (map [(item ? content) <= (item (? + 1) content)] [0 1 2]))
+  report ( reduce and (map [ ?1 -> (item ?1 content) <= (item (?1 + 1) content) ] [0 1 2]))
 end
 
 ; Searcher report to compute the heuristic for this searcher
 to-report heuristic [#Goal]
   let indexes [0 1 2]
   let c [content] of current-state
-  report length filter [?] (map [(item ? c) > (item (? + 1) c)] indexes)
+  report length filter [ ?1 -> ?1 ] (map [ ?1 -> (item ?1 c) > (item (?1 + 1) c) ] indexes)
 end
 
 ; Auxiliary procedure to test the A* algorithm for sorting lists
@@ -86,7 +86,7 @@ to test
   if path != false [
     ;repeat 1000 [layout-spring states links 1 3 .3]
     highlight-path path
-    print (word "Actions to sort it: " (map [first [rule] of ?] path))
+    print (word "Actions to sort it: " (map [ ?1 -> first [rule] of ?1 ] path))
   ]
   print (word (max [who] of turtles - count states) " searchers used")
   print (word (count states) " states created")
@@ -206,9 +206,9 @@ end
 ; Create dinamically the neighbors of s
 to create-neighbor-states [s]
   ask s [
-    foreach children-states [
-      let ns first ?
-      let r last ?
+    foreach children-states [ ?1 ->
+      let ns first ?1
+      let r last ?1
       ifelse not any? states with [content = ns]
       [
         hatch-states 1 [
@@ -239,8 +239,8 @@ end
 ; Auxiliary procedure the highlight the path when it is found. It makes use of reduce procedure with
 ; highlight report
 to highlight-path [path]
-  foreach path [
-    ask ? [
+  foreach path [ ?1 ->
+    ask ?1 [
       set color yellow set thickness .4
     ]
   ]
@@ -254,10 +254,10 @@ end
 GRAPHICS-WINDOW
 85
 10
-524
-470
-16
-16
+522
+448
+-1
+-1
 13.0
 1
 10
@@ -306,9 +306,8 @@ circle
 false
 0
 Circle -7500403 true true 0 0 300
-
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -324,7 +323,6 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 1
 @#$#@#$#@
