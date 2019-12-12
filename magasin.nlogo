@@ -189,7 +189,13 @@ to go
   ask turtles
   [
     ;; faire face à sa destination
-    facexy arrivee-x arrivee-y
+    ifelse [produit] of patch-here = -1 and pycor != arrivee-x [
+      facexy arrivee-x 0
+    ]
+    [
+      facexy arrivee-x arrivee-y
+    ]
+
 
     ;; calcul de la case suivante
     set caseSuivante next-patch
