@@ -301,8 +301,8 @@ end
 
 to add-to-queue [clt pxfirst pyfirst]
   let patch-list sort patches with [pycor = pyfirst and pxcor < pxfirst and pxcor > pxfirst - size-queue]
-  foreach patch-list [
-    ask ?
+  foreach patch-list [ ?1 ->
+    ask ?1
     [
       let pxnew pxcor
       if not any? (clients-on self)
@@ -318,8 +318,8 @@ end
 
 to move-queue [pxfirst pyfirst]
   let patch-list sort patches with [pycor = pyfirst and pxcor < pxfirst and pxcor > pxfirst - size-queue]
-  foreach patch-list [
-    ask ?
+  foreach patch-list [ ?1 ->
+    ask ?1
     [
       let pxnew pxcor + 1
       ask clients-on self [
@@ -332,10 +332,10 @@ end
 GRAPHICS-WINDOW
 99
 10
-564
-470
-17
-16
+562
+448
+-1
+-1
 13.0
 1
 10
@@ -382,7 +382,7 @@ num-treb-carn
 num-treb-carn
 1
 10
-1
+1.0
 1
 1
 persones
@@ -397,7 +397,7 @@ num-treb-fruita
 num-treb-fruita
 1
 10
-1
+1.0
 1
 1
 persones
@@ -412,7 +412,7 @@ num-treb-peix
 num-treb-peix
 1
 10
-4
+4.0
 1
 1
 persones
@@ -427,7 +427,7 @@ num-treb-forn
 num-treb-forn
 1
 10
-4
+4.0
 1
 1
 persones
@@ -442,7 +442,7 @@ num-treb-caixes
 num-treb-caixes
 1
 10
-4
+4.0
 1
 1
 persones
@@ -487,7 +487,7 @@ TEXTBOX
 63
 1253
 81
-Carnisseria
+Boucherie\n
 12
 0.0
 1
@@ -501,7 +501,7 @@ temps-carn
 temps-carn
 0
 500
-250
+250.0
 10
 1
 sec
@@ -516,7 +516,7 @@ marge-temps-carn
 marge-temps-carn
 0
 100
-51
+54.0
 1
 1
 sec
@@ -527,7 +527,7 @@ TEXTBOX
 69
 1524
 87
-Peixateria
+Poissonnerie
 12
 0.0
 1
@@ -541,7 +541,7 @@ temps-peix
 temps-peix
 0
 500
-240
+240.0
 10
 1
 sec
@@ -556,7 +556,7 @@ marge-temps-peix
 marge-temps-peix
 0
 100
-49
+49.0
 1
 1
 NIL
@@ -565,9 +565,9 @@ HORIZONTAL
 TEXTBOX
 1105
 229
-1255
-247
-Fruiteria
+1280
+259
+Marché des fruits et légumes
 12
 0.0
 1
@@ -581,7 +581,7 @@ temps-fruita
 temps-fruita
 0
 500
-240
+320.0
 10
 1
 sec
@@ -596,7 +596,7 @@ marge-temps-fruita
 marge-temps-fruita
 0
 100
-51
+51.0
 1
 1
 NIL
@@ -607,7 +607,7 @@ TEXTBOX
 226
 1509
 244
-Forn
+Rotisserie
 12
 0.0
 1
@@ -621,7 +621,7 @@ temps-forn
 temps-forn
 0
 500
-240
+240.0
 10
 1
 sec
@@ -636,7 +636,7 @@ marge-temps-forn
 marge-temps-forn
 0
 100
-25
+25.0
 1
 1
 sec
@@ -647,7 +647,7 @@ TEXTBOX
 397
 1250
 415
-Caixes
+Caisses
 12
 0.0
 1
@@ -661,7 +661,7 @@ temps-caixes
 temps-caixes
 0
 500
-240
+240.0
 10
 1
 sec
@@ -676,7 +676,7 @@ marge-temps-caixes
 marge-temps-caixes
 0
 100
-50
+50.0
 1
 1
 sec
@@ -687,7 +687,7 @@ TEXTBOX
 397
 1511
 415
-Prestatgeries
+Étagères
 12
 0.0
 1
@@ -701,7 +701,7 @@ temps-prestatges
 temps-prestatges
 0
 500
-500
+500.0
 10
 1
 sec
@@ -716,7 +716,7 @@ marge-temps-prestatges
 marge-temps-prestatges
 0
 100
-100
+100.0
 1
 1
 sec
@@ -753,7 +753,7 @@ temps-entrada
 temps-entrada
 0
 1000
-110
+110.0
 10
 1
 sec
@@ -768,74 +768,37 @@ marge-temps-entrada
 marge-temps-entrada
 0
 100
-100
+100.0
 1
 1
 sec
 HORIZONTAL
 
 @#$#@#$#@
-## QUÈ ÉS?
+## Présentation
 
-Aquest model tracta de simular el comportament intern d'un supermercat.
+Ce modèle tente de simuler le comportement interne d'un supermarché.
 
-És a dir, com són atesos els clients a cada zona del super en funció del nombre de dependents a cada una d'elles. El nostre supermercat consta de 6 zones: carnisseria, peixateria, fruiteria, forn, prestatges i caixes.  En totes elles hi ha dependents menys a la zona de prestatges que els clients s’autoserveixen.
+Autrement dit, la façon dont les clients sont servis dans chaque zone du supermarché en fonction du nombre de personnes chargés chacun d'eux. Notre supermarché compte 6 espaces: boucherie, poissonnerie, fruiterie, four, étagères et caisses. Dans chacun d'entre eux, il y a moins de personnes chargé du rayon que de clients en libre-service.
 
+## Utilisation
+Vous devez d'abord cliquer sur SETUP pour initialiser le modèle.
+Allez ensuite sur GO pour le faire fonctionner.
+Avec le bouton STEP, vous pouvez exécuter le modèle une coche et voir l'exécution étape par étape. Cela permet une meilleure analyse du comportement du modèle.
 
-## UTILITZACIÓ
-Primer s'ha de fer click a SETUP per tal d’inicialitzar el model.
-Després a GO per a fer-lo funcionar.
-Amb el botó STEP es pot fer córrer el model un tick i veure l’execució pas a pas. Això permet analitzar millor el comportament del model.
+Pour chaque zone, un curseur détermine le nombre d'employés pouvant servir les clients. Dans chacun d'entre eux, il doit y avoir au moins un travailleur (moins sur les étagères, où chaque client se sert et ne dépend pas d'être servi), et un maximum de 10. Cependant, le maximum est arbitraire et peut être augmenté pas de problème.
 
-Per a cada zona, hi ha un slider que determina el número de treballadors que poden atendre clients. A totes elles hi ha d’haver almenys un treballador (menys a prestatgeries, on cada client es serveix a si mateix i no depèn de ser atès), i un màxim de 10. Tot i això, el màxim és arbitrari i es pot augmentar sense cap problema.
+## Implémentation
+D'une manière générale, chaque zone a une file d'attente interne où le nombre de clients faisant la queue pour être servi est stocké.
+Une fois qu'ils se déplacent, les clients vérifient les zones manquantes et lorsqu'ils en trouvent une. Une fois qu'ils ont terminé, ils parcourent les cases.
 
-## IMPLEMENTACIÓ
-A grans trets, cada zona disposa d’una cua interna on es guarda el número de clients que estan fent cua per a ser atesos.
-Un cop es pot moure de zona, els clients comproven quines zones els falten per a visitar i, quan troben una que els falta, hi van. Un cop han acabat passen per caixes.
-
-S’ha decidit separar la representació gràfica del model amb la representació funcional d’aquest per a tal de facilitar la implementació. Pel que fa a la represntació gràfica, les cues estan represntades per a un espai entre dues zones de tal manera que la cua és de la zona de la dreta. En aquesta zona s’hi pintarà gent quan l’algorisme decideixi enviar-hi clients i s’esborraran quan aquests siguin atesos.
-
-
-## REPRESENTACIÓ
-S’ha especificat cada zona com una gran columna, pretenent imitar un mostrador. En inicialitzar el model, a cada mostrador de cada zona es posicionen tants treballadors com s’hagin especificat als sliders.
-
-Finalment, les cues es representen a l’esquerra del mostrador com a una fila horitzontal de color turquesa.
+Il a été décidé de séparer la représentation graphique du modèle de la représentation fonctionnelle du modèle afin de faciliter sa mise en œuvre. Pour le rendu graphique, les files d'attente sont représentées pour un espace entre deux zones afin que la file d'attente soit du côté droit. Les gens seront peints dans cette zone lorsque l'algorithme décide d'envoyer des clients et ils seront supprimés lorsqu'ils seront servis.
 
 
+## Réprésentation
+Chaque zone est spécifiée comme une grande colonne, faisant semblant d'être un compteur. Lors de l'initialisation du modèle, chaque bureau dans chaque zone positionne autant de travailleurs que spécifié dans les curseurs.
 
-
-
-##EXPERIMENTACIÓ
-
-Els gràfics es poden veure en el pdf adjunt.
-
-Tots els experiments s’han fet tenint en compte que només hi ha 20 empleats al supermercat i que els temps de servei per a totes les zones són el mateix.
-En el primer experiment el que hem fet és repartir els 20 empleats entre totes les botigues de dins el supermercat. Al ser 5, toquen 4 empleats per a cada una. Aquesta simulació l’hem fet amb un temps de servei normal però amb molt poc temps entre arribades.
-
-Com podem veure en el gràfic resultant, hi ha una mitjana de 2 persones a les cues, però com es pot observar, no hi ha cap zona que relantitziespecialment les vendes.
-
-
-
-El segon experiment que hem dut a terme és pràcticament igual que el primer malgrat el temps entre arribades, que l’hem augmentat considerablement. En el gràfic resultant podem veure com la mitjana de clients a les cues és pràcticament 0 i hi ha algun cop que arriba a haver-hi una persona. De la mateixa manera que en el primer experiment podem veure com els colors de la gràfica estàn completament distribuits.
-
-
-
-En el tercer experiment, hem volgut comprovar que passava si reduíem el nombre de dependents d’una zona. D’aquesta manera, s’ha tornat a augmentar el temps entre arribades general i s’ha reduït el número de dependents de la carnisseria a 1.
-
-Tal i com es pot veure en la gràfica dels resultats, les persones de la cua de la carnisseria es disparen ja que aquesta no és capaç d’absorbir tota la càrrega de clients amb un dependent i prou.
-
-
-
-En l’últim experiment, hem volgut comprovar quin és el comportament de la simulació en el cas de que hi hagi dos zones amb pocs dependents. D’aquesta manera hem decidit deixar tant la carnisseria com la fruiteria amb només una persona.
-
-Els resultats obtinguts es poden veure en la següent gràfica i el que podem observar és que la cua de la fruiteria es dispara mentre que la cua de la carnisseria no. Tot i que aquesta última no es dispari aquesta sempre té una persona, i a vegades dues a la cua.
-
-Aquest comportament és degut a que la fruiteria està al principi del supermercat i per tant la gent primer passa per aquesta zona. Per tant aquesta zona fa de filtre i la gent no s’acumula a les altres. És per aquesta raó que encara que tant la fruiteria com la carnisseria tinguin el mateix nombre de dependents, a la fruiteria s’hi acumula molta més gent.
-
-
-
-De l’anàlisi dels resultats d’aquests experiments, podem concloure que el millor rendiment s’obté quan el nombre de dependents és similar en totes les zones.
-
+Enfin, les files d'attente sont tracées à gauche du comptoir comme une rangée horizontale de turquoise.
 @#$#@#$#@
 default
 true
@@ -1141,9 +1104,8 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
-
 @#$#@#$#@
-NetLogo 5.3.1
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -1159,7 +1121,6 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 0
 @#$#@#$#@

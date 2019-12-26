@@ -19,9 +19,9 @@ end
 
 to go
   ;; Check if finished serving
-  foreach (n-values array:length countdown-serve-list [?])
-  [
-    let cur_serv array:item countdown-serve-list ?
+  foreach (n-values array:length countdown-serve-list [ ?1 -> ?1 ])
+  [ ?1 ->
+    let cur_serv array:item countdown-serve-list ?1
     let cur_cd (item 0 cur_serv) - 1
     let cur_turt item 1 cur_serv
 
@@ -51,13 +51,13 @@ to go
           set color red
           fd 2
           rt 90
-          fd ?
+          fd ?1
           lt 90
         ]
 
         ;; Move ahead
-        foreach queue-list [
-          ask turtle ? [
+        foreach queue-list [ ??1 ->
+          ask turtle ??1 [
             let ahead one-of turtles-on patch-ahead 1
             if ahead = nobody
             [
@@ -69,7 +69,7 @@ to go
     ]
 
     let new_cur_serv list cur_cd cur_turt
-    array:set countdown-serve-list ? new_cur_serv
+    array:set countdown-serve-list ?1 new_cur_serv
   ]
 
   ;; Check if somebody arrived
@@ -109,10 +109,10 @@ end
 GRAPHICS-WINDOW
 14
 251
-869
-451
-32
-6
+867
+429
+-1
+-1
 13.0
 1
 10
@@ -160,7 +160,7 @@ at-start
 at-start
 1
 10
-5
+5.0
 1
 1
 NIL
@@ -175,7 +175,7 @@ time-new
 time-new
 1
 50
-5
+5.0
 1
 1
 tick
@@ -224,7 +224,7 @@ time-serve
 time-serve
 0
 50
-10
+10.0
 1
 1
 tick
@@ -239,7 +239,7 @@ number-of-employees
 number-of-employees
 1
 5
-3
+3.0
 1
 1
 NIL
@@ -546,9 +546,8 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
-
 @#$#@#$#@
-NetLogo 5.3.1
+NetLogo 6.1.1
 @#$#@#$#@
 setup
 repeat 180 [ go ]
@@ -566,7 +565,6 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 1
 @#$#@#$#@
