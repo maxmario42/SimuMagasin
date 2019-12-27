@@ -215,6 +215,8 @@ to go
       if (distancexy arrivee-x arrivee-y) > 4
       [chercherDest]
     ]
+
+    ;; arrive au produit désiré, achat
     if [produit] of patch-here = listeVoir
     [
       set achat? true
@@ -414,7 +416,7 @@ HORIZONTAL
 Ceci est un modèle de supermarché. Il montre le comportement des clients en fonction de ceux dont ils ont besoin et de leur profil.
 
 # Utilisation
-Réglez le nombre de clients et cliquez sur SETUP. Il suffit ensuite de cliquer sur GO pour une résolution complète ou sur STEP pour une résolution pas à pas.
+Réglez le nombre de clients et cliquez sur SETUP. Il suffit ensuite de cliquer sur GO pour une résolution complète ou sur GO 1 FOIS pour une résolution pas à pas.
 
 
 # Fonctionnement
