@@ -11,7 +11,9 @@ globals [
 ]
 
 ;;variables de cellules :
-;; la case correspond a une rayon, une sortie, une caisse, un produit sinon un espace vide
+;; la case correspond a un rayon, une sortie, une caisse, un produit sinon un espace vide
+;; rayon?, sortie? et caisse? sont des booleans, un seul des trois peut être TRUE au maximum
+;; produit est un entier strictement positif si il y a un produit, sinon -1
 patches-own [
   rayon?
   sortie?
@@ -23,7 +25,7 @@ patches-own [
 breed[clients client]
 
 ;; Les agents ont une liste de produit à voir
-;; Ils peuvent acheter au moins un produit
+;; Ils peuvent acheter au moins un produit. Si ils ont un produit, achat? passe a TRUE
 ;; Ils ont une destination en fonction des produits restants à voir et s'ils ont un achat à régler
 clients-own[
   listeVoir
@@ -98,14 +100,14 @@ to initialiserAgents
       [ set xi 0
         set yi yi + 3
       ]
-    set achat? false
-    set listeVoir (random numeroProduit) + 1
+    set achat? false ;;Ils n'ont pas encore fait d'achat
+    set listeVoir (random numeroProduit) + 1 ;;On leut donne un produit à voir
     set color yellow - 2 + random 7
     setxy (xi - 17) (38 - yi )
     set xi xi + 1
     set arrivee-x 10000
     set arrivee-y 10000
-    set bloque 0
+    set bloque 0 ;; Il n'a pas encore été bloqué
     chercherDest
   ]
 end
@@ -114,9 +116,9 @@ end
 to chercherDest
   let dxi  arrivee-x
   let dyi  arrivee-y
-  ifelse listeVoir = 0
+  ifelse listeVoir = 0 ;; Si le client n'a plus rien a voir
   [
-    ifelse achat? = true
+    ifelse achat? = true ;; Si le client a réalisé un achat, il va aux caisses, sinon vers la sortie
     [
       set arrivee-x caisse-x
       set arrivee-y caisse-y
@@ -401,19 +403,22 @@ nbAgents
 nbAgents
 1
 300
-31.0
+1.0
 1
 1
 NIL
 HORIZONTAL
 
 @#$#@#$#@
-WHAT IS IT?
------------
-This project models the behavior of ants following a leader towards a food source. The leader ant moves towards the food along a random path; after a small delay, the second ant in the line follows the leader by heading directly towards where the leader is located. Each subsequent ant follows the ant ahead of it in the same manner.
+# Présentation
+Ceci est un modèle de supermarché. Il montre le comportement des clients en fonction de ceux dont ils ont besoin et de leur profil.
 
-Even though the leader may take a very circuitous path towards the food, the ant trail, surprisingly, adopts a smooth shape. While it is not yet clear if this model is a biologically accurate model of ant behavior, it is an interesting mathematical exploration of the emergent behavior of a series of agents following each other serially.
+# Utilisation
+Réglez le nombre de clients et cliquez sur SETUP. Il suffit ensuite de cliquer sur GO pour une résolution complète ou sur STEP pour une résolution pas à pas.
 
+
+# Fonctionnement
+Voir les commentaires du code.
 
 READ THIS !
 -----------
