@@ -412,7 +412,7 @@ num-treb-peix
 num-treb-peix
 1
 10
-4.0
+1.0
 1
 1
 persones
@@ -427,7 +427,7 @@ num-treb-forn
 num-treb-forn
 1
 10
-4.0
+1.0
 1
 1
 persones
@@ -442,7 +442,7 @@ num-treb-caixes
 num-treb-caixes
 1
 10
-4.0
+1.0
 1
 1
 persones
@@ -784,7 +784,7 @@ Autrement dit, la façon dont les clients sont servis dans chaque zone du superm
 ## Utilisation
 Vous devez d'abord cliquer sur SETUP pour initialiser le modèle.
 Allez ensuite sur GO pour le faire fonctionner.
-Avec le bouton STEP, vous pouvez exécuter le modèle une coche et voir l'exécution étape par étape. Cela permet une meilleure analyse du comportement du modèle.
+Le bouton STEP permet une exécution pas à pas.
 
 Pour chaque zone, un curseur détermine le nombre d'employés pouvant servir les clients. Dans chacun d'entre eux, il doit y avoir au moins un travailleur (moins sur les étagères, où chaque client se sert et ne dépend pas d'être servi), et un maximum de 10. Cependant, le maximum est arbitraire et peut être augmenté pas de problème.
 
