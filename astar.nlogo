@@ -41,6 +41,10 @@ end
 
 to go
   ask sheeps [ sheep_step ]
+  let bad patches with [count sheeps-here > 1]
+  if any? bad [
+    show bad
+  ]
 end
 
 to setup_sheep [ dest ]
@@ -56,30 +60,41 @@ to sheep_step
 
   (ifelse step < length path [
     let next_patch item step path
-    set step step + 1
 
-    ifelse is_patch_walkable next_patch [
+    ifelse [not any? sheeps-here] of next_patch or next_patch = patch-here [
       face next_patch
       move-to next_patch
 
       if next_patch = destination [
         ask destination [ set pcolor green ]
       ]
+
+      set step step + 1
     ] [
-      compute_new_path
+      may_compute_new_path 0.5
     ]
   ] length path = 0 [
-    show "destination is unreachable"
-    compute_new_path
+    ; show "destination is unreachable"
+    may_compute_new_path 0.5
   ])
 
 end
 
+to may_compute_new_path [ sigma ]
+  if random-float 1 >= sigma [
+    show "compute new path"
+    compute_new_path
+  ]
+end
+
+; compute a new path to destination using the a star algorithm and reset step
+; returns a list starting with patch-here when a path has been found
+; returns an empty list when the destination is unreachable
 to compute_new_path
-  show "computing new path"
+  ; show "computing new path"
 
   set path (list)
-  set step 0
+  set step 1
 
   let dest destination
   let origin patch-here
@@ -137,7 +152,11 @@ to-report compare_patch_score [ score pat_a pat_b ]
 end
 
 to-report is_patch_walkable [ p ]
-  report [is_walkable] of p and not any? neighbors with [self = p and any? sheeps-here] ; dodge any nearby sheep
+  ifelse p != patch-here [
+    report [is_walkable] of p and [not any? sheeps-here] of p
+  ] [
+    report [is_walkable] of p
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -209,8 +228,8 @@ SLIDER
 sheep_count
 sheep_count
 0
-100
-80.0
+300
+227.0
 1
 1
 sheep
