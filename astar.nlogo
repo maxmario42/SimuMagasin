@@ -1,7 +1,7 @@
 extensions [ table ]
-breed [ sheeps sheep ]
+breed [ clients client ]
 
-sheeps-own [
+clients-own [
  destination
  path
  step
@@ -10,57 +10,57 @@ sheeps-own [
 ]
 
 patches-own [
-  is_walkable
+  rayon?
   is_destination
 ]
 
 to setup
   clear-all
 
-  ask patches [ set is_walkable true ]
+  ask patches [ set rayon? false ]
 
   ask patches with [ pycor = 0 and pxcor > -8 and pxcor < 8 ] [
-    set is_walkable false
+    set rayon? true
     set pcolor brown
   ]
 
-  create-sheeps sheep_count [
+  create-clients client_count [
     let dest_patch patch random-xcor random-ycor
-    while [[is_walkable = false or is_destination = true] of dest_patch] [
+    while [[rayon? = true or is_destination = true] of dest_patch] [
       set dest_patch patch random-xcor random-ycor
     ]
 
-    let sheep_patch patch random-xcor random-ycor
-    while [[any? sheeps-here or is_walkable = false] of sheep_patch] [
-      set sheep_patch patch random-xcor random-ycor
+    let client_patch patch random-xcor random-ycor
+    while [[any? clients-here or rayon? = true] of client_patch] [
+      set client_patch patch random-xcor random-ycor
     ]
 
-    move-to sheep_patch
-    setup_sheep dest_patch
+    move-to client_patch
+    setup_client dest_patch
   ]
 end
 
 
 to go
-  ask sheeps [ sheep_step ]
-  let bad patches with [count sheeps-here > 1]
+  ask clients [ client_step ]
+  let bad patches with [count clients-here > 1]
   if any? bad [
     show bad
   ]
 end
 
-to setup_sheep [ dest ]
+to setup_client [ dest ]
   set destination dest
   set successive_recompute 0
   set tmp_dst nobody
 
-  let sheep_color color
-  ask destination [ set pcolor sheep_color ]
+  let client_color color
+  ask destination [ set pcolor client_color ]
   ask dest [ set is_destination true ]
   compute_new_path destination
 end
 
-to sheep_step
+to client_step
   let c color
   let success true
   let current_patch patch-here
@@ -69,8 +69,8 @@ to sheep_step
   (ifelse step < length path [
     let next_patch item step path
 
-    ; if the next patch has any sheep on it, we need to compute a new path
-    ifelse [not any? sheeps-here] of next_patch or next_patch = current_patch [
+    ; if the next patch has any client on it, we need to compute a new path
+    ifelse [not any? clients-here] of next_patch or next_patch = current_patch [
       face next_patch
       move-to next_patch
 
@@ -97,7 +97,7 @@ to sheep_step
       may_compute_new_path 0.9 destination
     ] [
       show "MOVING OUT OF THE WAY"
-      set tmp_dst one-of patches with [is_walkable and not any? sheeps-here and current_patch != dest]
+      set tmp_dst one-of patches with [not rayon? and not any? clients-here and current_patch != dest]
       may_compute_new_path 0.9 tmp_dst
     ]
   ] [
@@ -192,9 +192,9 @@ end
 
 to-report is_patch_walkable [ p ]
   ifelse p != patch-here [
-    report [is_walkable] of p and [not any? sheeps-here] of p
+    report [not rayon?] of p and [not any? clients-here] of p
   ] [
-    report [is_walkable] of p
+    report [not rayon?] of p
   ]
 end
 @#$#@#$#@
@@ -264,14 +264,14 @@ SLIDER
 203
 259
 236
-sheep_count
-sheep_count
+client_count
+client_count
 0
 300
 300.0
 1
 1
-sheep
+client
 HORIZONTAL
 
 BUTTON
