@@ -1,14 +1,15 @@
 extensions [ table ]
-
 breed [ sheeps sheep ]
 
 sheeps-own [
  destination
- next_patch
+ path
+ step
 ]
 
 patches-own [
   is_walkable
+  is_destination
 ]
 
 to setup
@@ -21,32 +22,64 @@ to setup
     set pcolor brown
   ]
 
-  ask patch -4 -8 [
-    sprout-sheeps 1 [ setup_sheep patch 5 7 ]
-  ]
+  create-sheeps sheep_count [
+    let dest_patch patch random-xcor random-ycor
+    while [[is_walkable = false or is_destination = true] of dest_patch] [
+      set dest_patch patch random-xcor random-ycor
+    ]
 
-  ask patch -3 -7 [ sprout-sheeps 1 ]
+    let sheep_patch patch random-xcor random-ycor
+    while [[any? sheeps-here or is_walkable = false] of sheep_patch] [
+      set sheep_patch patch random-xcor random-ycor
+    ]
+
+    move-to sheep_patch
+    setup_sheep dest_patch
+  ]
 end
 
 
 to go
-  ask patches with [is_walkable = true] [ set pcolor black ]
-  ask sheep 0 [
-    compute_new_path
-    show sentence "next patch " (word next_patch)
-    sheep_step
-    ask destination [ set pcolor blue ]
-  ]
+  ask sheeps [ sheep_step ]
 end
 
 to setup_sheep [ dest ]
+  let sheep_color color
   set destination dest
-  ask destination [ set pcolor blue ]
+  ask destination [ set pcolor sheep_color ]
+  ask dest [ set is_destination true ]
+  compute_new_path
+end
+
+to sheep_step
+  let c color
+
+  (ifelse step < length path [
+    let next_patch item step path
+    set step step + 1
+
+    ifelse is_patch_walkable next_patch [
+      face next_patch
+      move-to next_patch
+
+      if next_patch = destination [
+        ask destination [ set pcolor green ]
+      ]
+    ] [
+      compute_new_path
+    ]
+  ] length path = 0 [
+    show "destination is unreachable"
+    compute_new_path
+  ])
+
 end
 
 to compute_new_path
-  set next_patch patch-here
-  let path (list)
+  show "computing new path"
+
+  set path (list)
+  set step 0
 
   let dest destination
   let origin patch-here
@@ -86,15 +119,12 @@ to compute_new_path
       set to_explore sublist to_explore 1 length to_explore
       set to_explore sort-by [ [ a b ] -> compare_patch_score score_total a b ] to_explore
     ] [
-      ask current [ set pcolor green ]
-
       set path (list current)
       while [ table:has-key? came_from (word current) ] [
         set current table:get came_from (word current)
         set path sentence current path
       ]
 
-      if length path > 1 [ set next_patch item 1 path ]
       set to_explore (list)
     ]
   ]
@@ -109,17 +139,12 @@ end
 to-report is_patch_walkable [ p ]
   report [is_walkable] of p and not any? neighbors with [self = p and any? sheeps-here] ; dodge any nearby sheep
 end
-
-to sheep_step
-  face next_patch
-  move-to next_patch
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-647
-448
+382
+28
+819
+466
 -1
 -1
 13.0
@@ -163,6 +188,38 @@ BUTTON
 59
 117
 122
+150
+Go
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+51
+203
+259
+236
+sheep_count
+sheep_count
+0
+100
+80.0
+1
+1
+sheep
+HORIZONTAL
+
+BUTTON
+121
+117
+184
 150
 Go
 go
