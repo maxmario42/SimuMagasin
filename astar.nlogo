@@ -5,6 +5,8 @@ sheeps-own [
  destination
  path
  step
+ successive_recompute
+ tmp_dst
 ]
 
 patches-own [
@@ -48,55 +50,74 @@ to go
 end
 
 to setup_sheep [ dest ]
-  let sheep_color color
   set destination dest
+  set successive_recompute 0
+  set tmp_dst nobody
+
+  let sheep_color color
   ask destination [ set pcolor sheep_color ]
   ask dest [ set is_destination true ]
-  compute_new_path
+  compute_new_path destination
 end
 
 to sheep_step
   let c color
+  let success true
+  let current_patch patch-here
 
   (ifelse step < length path [
     let next_patch item step path
 
-    ifelse [not any? sheeps-here] of next_patch or next_patch = patch-here [
+    ; if the next patch has any sheep on it, we need to compute a new path
+    ifelse [not any? sheeps-here] of next_patch or next_patch = current_patch [
       face next_patch
       move-to next_patch
 
-      if next_patch = destination [
+      (ifelse next_patch = destination [
         ask destination [ set pcolor green ]
-      ]
+        show "reached destination"
+      ] next_patch = tmp_dst [
+        set tmp_dst nobody
+        compute_new_path destination
+      ])
 
       set step step + 1
     ] [
-      may_compute_new_path 0.5
+      set success false
     ]
   ] length path = 0 [
     ; show "destination is unreachable"
-    may_compute_new_path 0.5
+    set success false
   ])
 
+  ifelse not success [
+    set successive_recompute successive_recompute + 1
+    ifelse successive_recompute < 50 [
+      may_compute_new_path 0.9 destination
+    ] [
+      show "MOVING OUT OF THE WAY"
+      set tmp_dst one-of patches with [is_walkable and not any? sheeps-here and not current_patch]
+      may_compute_new_path 0.9 tmp_dst
+    ]
+  ] [
+    set successive_recompute 0
+  ]
 end
 
-to may_compute_new_path [ sigma ]
-  if random-float 1 >= sigma [
-    show "compute new path"
-    compute_new_path
+to may_compute_new_path [ sigma dest ]
+  if random-float 1 <= sigma [
+    compute_new_path dest
   ]
 end
 
 ; compute a new path to destination using the a star algorithm and reset step
 ; returns a list starting with patch-here when a path has been found
 ; returns an empty list when the destination is unreachable
-to compute_new_path
-  ; show "computing new path"
+to compute_new_path [ dest ]
 
   set path (list)
   set step 1
 
-  let dest destination
   let origin patch-here
   let to_explore (list origin)
 
@@ -229,7 +250,7 @@ sheep_count
 sheep_count
 0
 300
-227.0
+300.0
 1
 1
 sheep
@@ -238,9 +259,9 @@ HORIZONTAL
 BUTTON
 121
 117
-184
+186
 150
-Go
+Step
 go
 NIL
 1
