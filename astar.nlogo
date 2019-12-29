@@ -4,10 +4,7 @@ breed [ sheeps sheep ]
 
 sheeps-own [
  destination
- path
  next_patch
- explored_patches
- step
 ]
 
 patches-own [
@@ -27,14 +24,16 @@ to setup
   ask patch -4 -8 [
     sprout-sheeps 1 [ setup_sheep patch 5 7 ]
   ]
+
+  ask patch -3 -7 [ sprout-sheeps 1 ]
 end
 
 
 to go
   ask patches with [is_walkable = true] [ set pcolor black ]
   ask sheep 0 [
-    compute_new_path_new
-    show path
+    compute_new_path
+    show sentence "next patch " (word next_patch)
     sheep_step
     ask destination [ set pcolor blue ]
   ]
@@ -43,15 +42,11 @@ end
 to setup_sheep [ dest ]
   set destination dest
   ask destination [ set pcolor blue ]
-  set explored_patches table:make
-  set step -1
-  compute_new_path_new
 end
 
-
-to compute_new_path_new
-  set path (list patch-here)
-  set step 0
+to compute_new_path
+  set next_patch patch-here
+  let path (list)
 
   let dest destination
   let origin patch-here
@@ -74,7 +69,7 @@ to compute_new_path_new
       let neighs [neighbors] of current
 
       foreach sort neighs [ neigh ->
-        if [is_patch_walkable] of neigh = true [
+        if is_patch_walkable neigh = true [
           let tentative_score [distance current] of neigh + table:get score_origin (word current)
           if table:has-key? score_origin (word neigh) = false or table:get score_origin (word neigh) > tentative_score [
             table:put came_from (word neigh) current
@@ -99,8 +94,7 @@ to compute_new_path_new
         set path sentence current path
       ]
 
-      set path sublist path 1 length path
-
+      if length path > 1 [ set next_patch item 1 path ]
       set to_explore (list)
     ]
   ]
@@ -112,53 +106,13 @@ to-report compare_patch_score [ score pat_a pat_b ]
   report pat_a_score < pat_b_score
 end
 
-to-report is_patch_walkable
-  report is_walkable = true
+to-report is_patch_walkable [ p ]
+  report [is_walkable] of p and not any? neighbors with [self = p and any? sheeps-here] ; dodge any nearby sheep
 end
 
 to sheep_step
-  if step < length path [
-    face item step path
-    move-to item step path
-    set step step + 1
-  ]
-end
-
-to compute_new_path
-  let result find_path patch-here
-  ifelse length result > 1 [ set path result ]
-  [ set path (list patch-here) ]
-
-  ifelse length path > 0 [ set step 0 ]
-  [ set step -1 ]
-end
-
-to-report find_path [ p ]
-  table:put explored_patches (word p) true
-  ask p [ set pcolor red ]
-
-  if [is_walkable] of p [
-    ifelse p = destination [
-      ask p [ set pcolor green ]
-      report (list p)
-    ][
-      ask p [ set pcolor yellow ]
-      let neighbor_list get_sorted_neighbors p
-      foreach neighbor_list [ n ->
-        if table:has-key? explored_patches (word n) = false [
-          let result find_path n
-          if length result > 0 [ report sentence p result ]
-        ]
-      ]
-    ]
-  ]
-
-  report (list)
-end
-
-to-report get_sorted_neighbors [ p ]
-  let dest destination
-  report sort-on [distance dest] [neighbors] of p
+  face next_patch
+  move-to next_patch
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
