@@ -64,6 +64,7 @@ to sheep_step
   let c color
   let success true
   let current_patch patch-here
+  let dest destination
 
   (ifelse step < length path [
     let next_patch item step path
@@ -96,7 +97,7 @@ to sheep_step
       may_compute_new_path 0.9 destination
     ] [
       show "MOVING OUT OF THE WAY"
-      set tmp_dst one-of patches with [is_walkable and not any? sheeps-here and not current_patch]
+      set tmp_dst one-of patches with [is_walkable and not any? sheeps-here and current_patch != dest]
       may_compute_new_path 0.9 tmp_dst
     ]
   ] [
@@ -119,7 +120,8 @@ to compute_new_path [ dest ]
   set step 1
 
   let origin patch-here
-  let to_explore (list origin)
+  let to_explore table:make
+  table:put to_explore (word origin) origin
 
   let explored table:make
 
@@ -130,8 +132,8 @@ to compute_new_path [ dest ]
   table:put score_origin (word origin) 0
   table:put score_total (word origin) distance dest
 
-  while [ length to_explore > 0 ] [
-    let current item 0 to_explore
+  while [ table:length to_explore > 0 ] [
+    let current pick_patch_with_lowest_score to_explore score_total
     table:put explored (word current) true
 
     ifelse current != dest [
@@ -146,14 +148,13 @@ to compute_new_path [ dest ]
             table:put score_total (word neigh) [distance dest] of neigh + tentative_score
 
             if table:has-key? explored (word neigh) = false [
-              set to_explore sentence to_explore neigh
+              table:put to_explore (word neigh) neigh
             ]
           ]
         ]
       ]
 
-      set to_explore sublist to_explore 1 length to_explore
-      set to_explore sort-by [ [ a b ] -> compare_patch_score score_total a b ] to_explore
+      table:remove to_explore (word current)
     ] [
       set path (list current)
       while [ table:has-key? came_from (word current) ] [
@@ -161,9 +162,26 @@ to compute_new_path [ dest ]
         set path sentence current path
       ]
 
-      set to_explore (list)
+      table:clear to_explore
     ]
   ]
+end
+
+to-report pick_patch_with_lowest_score [ to_explore score_total ]
+  let minimum world-width * world-height + 1 ; max value possible for a path
+  let result_patch nobody
+
+  foreach (table:keys to_explore) [ pat ->
+    if table:has-key? score_total pat [
+      let tentative_min table:get score_total pat
+      if tentative_min < minimum [
+        set minimum tentative_min
+        set result_patch table:get to_explore pat
+      ]
+    ]
+  ]
+
+  report result_patch
 end
 
 to-report compare_patch_score [ score pat_a pat_b ]
