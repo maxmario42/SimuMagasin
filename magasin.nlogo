@@ -47,7 +47,6 @@ to setup
   initialiserRayons
   initialiserSorties
   initialiserCaisses
-  initialiserAgents
 end
 
 ;; dessins des rayons et des produits
@@ -94,48 +93,16 @@ to initialiserCaisses
 end
 
 ;;initialisation des agents
-to initialiserAgents
-  let xi  0
-  let yi  0
+to creerClient
   create-clients nbAgents
   [
-    if xi = 14
-      [set xi xi + 7]
-    if xi = 35
-      [ set xi 0
-        set yi yi + 3
-      ]
     set achat? false ;;Ils n'ont pas encore fait d'achat
     set listeVoir (random numeroProduit) + 1 ;;On leut donne un produit à voir
     set color yellow - 2 + random 7
-    setxy (xi - 17) (38 - yi )
-    set xi xi + 1
+    move-to one-of patches with [sortie? = true]
     chercherDest
   ]
 end
-
-;; Calcul de la destination
-to chercherDest
-  ifelse listeVoir = 0 ;; Si le client n'a plus rien a voir
-  [
-    ifelse achat? = true ;; Si le client a réalisé un achat, il va aux caisses, sinon vers la sortie
-    [
-      set destination one-of (patches with [caisse? = true])
-    ]
-    [
-      set destination one-of (patches with [sortie? = true])
-    ]
-  ]
-  [
-    let n listeVoir
-    set destination one-of (patches with [produit = n])
-  ]
-  set successive_recompute 0
-  set tmp_dst nobody
-  ask destination [ set is_destination true ]
-  compute_new_path destination
-end
-
 
 ;; rayon  -> couleur de cellule
 to rayonCell
@@ -183,13 +150,34 @@ to libreCell
   set pcolor black
 end
 
+;; Calcul de la destination
+to chercherDest
+  ifelse listeVoir = 0 ;; Si le client n'a plus rien a voir
+  [
+    ifelse achat? = true ;; Si le client a réalisé un achat, il va aux caisses, sinon vers la sortie
+    [
+      set destination one-of (patches with [caisse? = true])
+    ]
+    [
+      set destination one-of (patches with [sortie? = true])
+    ]
+  ]
+  [
+    let n listeVoir
+    set destination one-of (patches with [produit = n])
+  ]
+  set successive_recompute 0
+  set tmp_dst nobody
+  ask destination [ set is_destination true ]
+  compute_new_path destination
+end
+
 to go
   ask clients [ client_step ]
   let bad patches with [count clients-here > 1]
   if any? bad [
     show bad
   ]
-  if count clients < 1 [stop]
 end
 
 to client_step
@@ -252,7 +240,7 @@ to client_step
       chercherDest
     ]
     ;; arrive à la sortie : mourir
-    if [sortie?] of patch-here
+    if [sortie?] of patch-here and listeVoir = 0
     [
     ask destination [ set is_destination false ]
     die
@@ -452,6 +440,38 @@ nbAgents
 1
 300
 100.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+1000
+315
+1126
+348
+Créer des Clients
+creerClient
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+1091
+170
+1263
+203
+nbProduits
+nbProduits
+1
+100
+1.0
 1
 1
 NIL
