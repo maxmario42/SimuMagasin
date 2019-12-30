@@ -30,6 +30,7 @@ breed[clients client]
 ;; Les agents ont une liste de produit à voir
 ;; Ils peuvent acheter au moins un produit. Si ils ont un produit, achat? passe a TRUE
 ;; Ils ont une destination en fonction des produits restants à voir et s'ils ont un achat à régler
+;; Ils ont un chemin à suivre pour attendre leur destination
 clients-own[
   listeVoir
   achat?
@@ -97,9 +98,10 @@ to creerClient
   create-clients nbAgents
   [
     set achat? false ;;Ils n'ont pas encore fait d'achat
-    set listeVoir (random numeroProduit) + 1 ;;On leut donne un produit à voir
+    set listeVoir []
+    repeat nbProduits [set listeVoir lput ((random numeroProduit) + 1) listeVoir] ;; Leur liste comporte autant de produit que désiré
     set color yellow - 2 + random 7
-    move-to one-of patches with [sortie? = true]
+    move-to one-of patches with [sortie? = true] ;; Ils entrent par l'entrée
     chercherDest
   ]
 end
@@ -152,7 +154,7 @@ end
 
 ;; Calcul de la destination
 to chercherDest
-  ifelse listeVoir = 0 ;; Si le client n'a plus rien a voir
+  ifelse empty? listeVoir ;; Si le client n'a plus rien a voir
   [
     ifelse achat? = true ;; Si le client a réalisé un achat, il va aux caisses, sinon vers la sortie
     [
@@ -163,7 +165,7 @@ to chercherDest
     ]
   ]
   [
-    let n listeVoir
+    let n first listeVoir ;; Il va vers le premier produit de sa liste
     set destination one-of (patches with [produit = n])
   ]
   set successive_recompute 0
@@ -222,13 +224,12 @@ to client_step
   ] [
     set successive_recompute 0
   ]
-
   ;; arrive au produit désiré, achat
-    if [produit] of patch-here = listeVoir
+    if not empty? listeVoir and [produit] of patch-here = first listeVoir
     [
       ask destination [ set is_destination false ]
       set achat? true
-      set listeVoir 0
+      set listeVoir but-first listeVoir ;; On retire le produit de la liste
       chercherDest
     ]
 
@@ -240,7 +241,7 @@ to client_step
       chercherDest
     ]
     ;; arrive à la sortie : mourir
-    if [sortie?] of patch-here and listeVoir = 0
+    if [sortie?] of patch-here and empty? listeVoir
     [
     ask destination [ set is_destination false ]
     die
@@ -438,7 +439,7 @@ SLIDER
 nbAgents
 nbAgents
 1
-300
+100
 100.0
 1
 1
@@ -471,7 +472,7 @@ nbProduits
 nbProduits
 1
 100
-1.0
+10.0
 1
 1
 NIL
@@ -482,15 +483,26 @@ HORIZONTAL
 Ceci est un modèle de supermarché. Il montre le comportement des clients en fonction de ceux dont ils ont besoin et de leur profil.
 
 # Utilisation
-Réglez le nombre de clients et cliquez sur SETUP. Il suffit ensuite de cliquer sur GO pour une résolution complète ou sur GO 1 FOIS pour une résolution pas à pas.
+
+## Installation
+
+Il suffit de cliquer sur SETUP. Cela créera le magasin et effacera le précédent (s'il existe).
+
+## Lancement
+
+Vous pouvez cliquer sur GO pour que la simulation tourne en permanence ou sur GO 1 FOIS pour une exécution pas à pas.
+
+## Clients
+
+Avec le slider nbAgents, vous pouvez choisir le nombre de clients qui vont entrer puis avec le slider nbProduits, le nombre de produits qu'ils vont voir. Il vous suffit ensuite de cliquer sur CREER DES CLIENTS pour qu'ils apparaissent à l'entrée.
 
 
 # Fonctionnement
-Voir les commentaires du code.
+Le calcul de chemin est basé sur l'algorithme A*. Voir les commentaires du code.
 
-READ THIS !
------------
-http://www.cs.us.es/~fsancho/?e=131
+# Auteurs
+
+Réalisé par Maxence Godefert et Valentin Maerten
 @#$#@#$#@
 default
 true
