@@ -1,3 +1,5 @@
+extensions [ table ]
+
 ;;Simulation d'un magasin
 
 ;;variables globales
@@ -19,6 +21,7 @@ patches-own [
   sortie?
   caisse?
   produit
+  is_destination
 ]
 
 ;; les clients
@@ -30,9 +33,11 @@ breed[clients client]
 clients-own[
   listeVoir
   achat?
-  arrivee-x arrivee-y
-  caseSuivante
-  bloque
+  destination
+  path
+  step
+  successive_recompute
+  tmp_dst
 ]
 
 ;;initialiser
@@ -105,35 +110,30 @@ to initialiserAgents
     set color yellow - 2 + random 7
     setxy (xi - 17) (38 - yi )
     set xi xi + 1
-    set arrivee-x 10000
-    set arrivee-y 10000
-    set bloque 0 ;; Il n'a pas encore été bloqué
     chercherDest
   ]
 end
 
 ;; Calcul de la destination
 to chercherDest
-  let dxi  arrivee-x
-  let dyi  arrivee-y
   ifelse listeVoir = 0 ;; Si le client n'a plus rien a voir
   [
     ifelse achat? = true ;; Si le client a réalisé un achat, il va aux caisses, sinon vers la sortie
     [
-      set arrivee-x caisse-x
-      set arrivee-y caisse-y
+      set destination one-of (patches with [caisse? = true])
     ]
     [
-      set arrivee-x porte-x
-      set arrivee-y porte-y
+      set destination one-of (patches with [sortie? = true])
     ]
   ]
   [
     let n listeVoir
-    let p one-of (patches with [produit = n])
-    set arrivee-x [pxcor] of p
-    set arrivee-y [pycor] of p
+    set destination one-of (patches with [produit = n])
   ]
+  set successive_recompute 0
+  set tmp_dst nobody
+  ask destination [ set is_destination true ]
+  compute_new_path destination
 end
 
 
@@ -183,42 +183,62 @@ to libreCell
   set pcolor black
 end
 
-
 to go
-  if not any? turtles [
-    stop
+  ask clients [ client_step ]
+  let bad patches with [count clients-here > 1]
+  if any? bad [
+    show bad
   ]
-  ask turtles
-  [
-    ;; faire face à sa destination
-    facexy arrivee-x arrivee-y
+  if count clients < 1 [stop]
+end
 
-    ;; calcul de la case suivante
-    set caseSuivante next-patch
+to client_step
+  let c color
+  let success true
+  let current_patch patch-here
+  let dest destination
 
-    ;;corriger la direction si besoin
-    corriger-chemin
+  (ifelse step < length path [
+    let next_patch item step path
 
-    ;; avancer si possible
-    ifelse caseSuivante != nobody
-    [ifelse  not any? turtles-on caseSuivante
-      [ifelse not [rayon?] of caseSuivante
-        [ setxy ([pxcor] of caseSuivante) ([pycor] of caseSuivante)
-          set bloque  0
-        ]
-        [ set bloque bloque + 1 ] ]
-      [set bloque bloque + 1]]
-    [ set bloque bloque + 1]
+    ; if the next patch has any client on it, we need to compute a new path
+    ifelse [not any? clients-here] of next_patch or next_patch = current_patch [
+      face next_patch
+      move-to next_patch
 
-    if (bloque >= 3 )
-    [
-      if (distancexy arrivee-x arrivee-y) > 4
-      [chercherDest]
+      (ifelse next_patch = destination [
+        show "reached destination"
+      ] next_patch = tmp_dst [
+        set tmp_dst nobody
+        compute_new_path destination
+      ])
+
+      set step step + 1
+    ] [
+      set success false
     ]
+  ] length path = 0 [
+    ; show "destination is unreachable"
+    set success false
+  ])
 
-    ;; arrive au produit désiré, achat
+  ifelse not success [
+    set successive_recompute successive_recompute + 1
+    ifelse successive_recompute < 50 [
+      may_compute_new_path 0.9 destination
+    ] [
+      show "MOVING OUT OF THE WAY"
+      set tmp_dst one-of patches with [not rayon? and not any? clients-here and current_patch != dest]
+      may_compute_new_path 0.9 tmp_dst
+    ]
+  ] [
+    set successive_recompute 0
+  ]
+
+  ;; arrive au produit désiré, achat
     if [produit] of patch-here = listeVoir
     [
+      ask destination [ set is_destination false ]
       set achat? true
       set listeVoir 0
       chercherDest
@@ -227,84 +247,110 @@ to go
     ;; arrive à la caisse : direction la sortie
     if [caisse?] of patch-here
     [
+      ask destination [ set is_destination false ]
       set achat? false
       chercherDest
     ]
     ;; arrive à la sortie : mourir
     if [sortie?] of patch-here
-    [die]
+    [
+    ask destination [ set is_destination false ]
+    die
+  ]
+
+end
+
+to may_compute_new_path [ sigma dest ]
+  if random-float 1 <= sigma [
+    compute_new_path dest
+  ]
+end
+
+; compute a new path to destination using the a star algorithm and reset step
+; returns a list starting with patch-here when a path has been found
+; returns an empty list when the destination is unreachable
+to compute_new_path [ dest ]
+
+  set path (list)
+  set step 1
+
+  let origin patch-here
+  let to_explore table:make
+  table:put to_explore (word origin) origin
+
+  let explored table:make
+
+  let came_from table:make
+  let score_origin table:make
+  let score_total table:make
+
+  table:put score_origin (word origin) 0
+  table:put score_total (word origin) distance dest
+
+  while [ table:length to_explore > 0 ] [
+    let current pick_patch_with_lowest_score to_explore score_total
+    table:put explored (word current) true
+
+    ifelse current != dest [
+      let neighs [neighbors] of current
+
+      foreach sort neighs [ neigh ->
+        if is_patch_walkable neigh = true [
+          let tentative_score [distance current] of neigh + table:get score_origin (word current)
+          if table:has-key? score_origin (word neigh) = false or table:get score_origin (word neigh) > tentative_score [
+            table:put came_from (word neigh) current
+            table:put score_origin (word neigh) tentative_score
+            table:put score_total (word neigh) [distance dest] of neigh + tentative_score
+
+            if table:has-key? explored (word neigh) = false [
+              table:put to_explore (word neigh) neigh
+            ]
+          ]
+        ]
+      ]
+
+      table:remove to_explore (word current)
+    ] [
+      set path (list current)
+      while [ table:has-key? came_from (word current) ] [
+        set current table:get came_from (word current)
+        set path sentence current path
+      ]
+
+      table:clear to_explore
     ]
+  ]
 end
 
-;; turtle procedure
-;; calcul de la prochaine case
-;; fonction à donner en début de TP, voir la doc de NetLogo
-;; et l'exemple NextPatch des Exempes de Code de la lirairie des mod�les
-to-report next-patch
-  if heading < towardsxy (pxcor + 0.5) (pycor + 0.5)
-    [ report patch-at 0 1 ]
-  if heading < towardsxy (pxcor + 0.5) (pycor - 0.5)
-    [ report patch-at 1 0 ]
-  if heading < towardsxy (pxcor - 0.5) (pycor - 0.5)
-    [ report patch-at 0 -1 ]
-  if heading < towardsxy (pxcor - 0.5) (pycor + 0.5)
-    [ report patch-at -1 0 ]
-  report patch-at 0 1
+to-report pick_patch_with_lowest_score [ to_explore score_total ]
+  let minimum world-width * world-height + 1 ; max value possible for a path
+  let result_patch nobody
+
+  foreach (table:keys to_explore) [ pat ->
+    if table:has-key? score_total pat [
+      let tentative_min table:get score_total pat
+      if tentative_min < minimum [
+        set minimum tentative_min
+        set result_patch table:get to_explore pat
+      ]
+    ]
+  ]
+
+  report result_patch
 end
 
+to-report compare_patch_score [ score pat_a pat_b ]
+  let pat_a_score table:get score (word pat_a)
+  let pat_b_score table:get score (word pat_b)
+  report pat_a_score < pat_b_score
+end
 
-
-;; turtle procedure
-;; correction du chemin si la case suivante existe et qu'il s'agit d'une rayon, choisir une autre case
-;; de même si il existe un client sur la case suivante
-to corriger-chemin
-  if (heading < 90) or (heading >= 180 and  heading <= 270)
-  [
-   if caseSuivante != nobody
-   [ ifelse [rayon?] of caseSuivante
-     [ set caseSuivante patch-left-and-ahead 45 1
-       if  caseSuivante != nobody
-         [ if [rayon?] of caseSuivante
-           [ set caseSuivante patch-right-and-ahead 45 1
-             if  caseSuivante != nobody
-             [
-               if [rayon?] of caseSuivante
-                 [ set caseSuivante patch-right-and-ahead 90 1] ]]]]
-      [
-      if any? turtles-on caseSuivante
-       [ set caseSuivante patch-left-and-ahead 45 1
-         if  caseSuivante != nobody
-           [ if any? turtles-on caseSuivante
-             [ set caseSuivante patch-right-and-ahead 45 1
-               if  caseSuivante != nobody
-                 [ if any? turtles-on caseSuivante
-                   [ set caseSuivante patch-right-and-ahead 90 1] ]]]] ]
-              ]
-   ]
-  if (heading > 270) or (heading >= 90 and heading < 180)
-  [
-   if caseSuivante != nobody
-   [ ifelse [rayon?] of caseSuivante
-     [ set caseSuivante patch-right-and-ahead 45 1
-       if  caseSuivante != nobody
-         [ if [rayon?] of caseSuivante
-           [ set caseSuivante patch-left-and-ahead 45 1
-             if  caseSuivante != nobody
-             [
-               if [rayon?] of caseSuivante
-                 [ set caseSuivante patch-left-and-ahead 90 1] ]]]]
-      [
-      if any? turtles-on caseSuivante
-       [ set caseSuivante patch-right-and-ahead 45 1
-         if  caseSuivante != nobody
-           [ if any? turtles-on caseSuivante
-             [ set caseSuivante patch-left-and-ahead 45 1
-               if  caseSuivante != nobody
-                 [ if any? turtles-on caseSuivante
-                   [ set caseSuivante patch-left-and-ahead 90 1] ]]]] ]
-              ]
-   ]
-
+to-report is_patch_walkable [ p ]
+  ifelse p != patch-here [
+    report [not rayon?] of p and [not any? clients-here] of p
+  ] [
+    report [not rayon?] of p
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -405,7 +451,7 @@ nbAgents
 nbAgents
 1
 300
-1.0
+100.0
 1
 1
 NIL
