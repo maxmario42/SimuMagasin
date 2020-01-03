@@ -8,7 +8,6 @@ extensions [ table ]
 ;; numéro du produit
 globals [
   porte-x porte-y
-  caisse-x caisse-y
   numeroProduit
 ]
 
@@ -88,9 +87,6 @@ to initialiserCaisses
     [ if (pycor = 50
         and (pxcor >= 17 and pxcor <= 25))
           [ caisseCell ]]
-
-  set caisse-x 21
-  set caisse-y 50
 end
 
 ;;initialisation des agents
@@ -440,7 +436,7 @@ nbAgents
 nbAgents
 1
 100
-100.0
+31.0
 1
 1
 NIL
