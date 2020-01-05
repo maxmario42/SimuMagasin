@@ -3,11 +3,8 @@ extensions [ table ]
 ;;Simulation d'un magasin
 
 ;;variables globales
-;; position de l'entrée-sortie
-;; position de la caisse
 ;; numéro du produit
 globals [
-  porte-x porte-y
   numeroProduit
 ]
 
@@ -20,18 +17,18 @@ patches-own [
   sortie?
   caisse?
   produit
-  is_destination
 ]
 
 ;; les clients
 breed[clients client]
 
 ;; Les agents ont une liste de produit à voir
-;; Ils peuvent acheter au moins un produit. Si ils ont un produit, achat? passe a TRUE
+;; Ils peuvent acheter au moins un produit. Si ils ont un produit, achat? passe a TRUE avec la proba correspondante dans probaAchat.
 ;; Ils ont une destination en fonction des produits restants à voir et s'ils ont un achat à régler
 ;; Ils ont un chemin à suivre pour attendre leur destination
 clients-own[
   listeVoir
+  probaAchat
   achat?
   destination
   path
@@ -76,9 +73,6 @@ to initialiserSorties
     [ if (pycor = 50
         and (pxcor >= -5 and pxcor <= 5))
           [ sortieCell ]]
-
-  set porte-x 0
-  set porte-y 50
 end
 
 ;; dessins des caisses
@@ -95,7 +89,11 @@ to creerClient
   [
     set achat? false ;;Ils n'ont pas encore fait d'achat
     set listeVoir []
-    repeat nbProduits [set listeVoir lput ((random numeroProduit) + 1) listeVoir] ;; Leur liste comporte autant de produit que désiré
+    set probaAchat []
+    repeat nbProduits [
+      set listeVoir lput ((random numeroProduit) + 1) listeVoir
+      set probaAchat lput (random-float 1) probaAchat
+    ] ;; Leur liste comporte autant de produit que désiré
     set color yellow - 2 + random 7
     move-to one-of patches with [sortie? = true] ;; Ils entrent par l'entrée
     chercherDest
@@ -166,7 +164,6 @@ to chercherDest
   ]
   set successive_recompute 0
   set tmp_dst nobody
-  ask destination [ set is_destination true ]
   compute_new_path destination
 end
 
@@ -223,23 +220,21 @@ to client_step
   ;; arrive au produit désiré, achat
     if not empty? listeVoir and [produit] of patch-here = first listeVoir
     [
-      ask destination [ set is_destination false ]
-      set achat? true
       set listeVoir but-first listeVoir ;; On retire le produit de la liste
+      if achat? = false and (random-float 1) > first probaAchat[set achat? true]
+      set probaAchat but-first probaAchat
       chercherDest
     ]
 
     ;; arrive à la caisse : direction la sortie
     if [caisse?] of patch-here
     [
-      ask destination [ set is_destination false ]
       set achat? false
       chercherDest
     ]
     ;; arrive à la sortie : mourir
     if [sortie?] of patch-here and empty? listeVoir
     [
-    ask destination [ set is_destination false ]
     die
   ]
 
@@ -367,9 +362,9 @@ ticks
 
 BUTTON
 851
-192
+164
 914
-225
+197
 NIL
 go
 T
@@ -383,10 +378,10 @@ NIL
 1
 
 BUTTON
-830
-271
-893
-304
+853
+86
+916
+119
 NIL
 setup
 NIL
@@ -400,10 +395,10 @@ NIL
 1
 
 MONITOR
-911
-377
 1028
-422
+270
+1145
+315
 clients presents
 count clients
 17
@@ -411,10 +406,10 @@ count clients
 11
 
 BUTTON
-970
-200
-1049
-233
+917
+164
+996
+197
 go 1 fois
 go
 NIL
@@ -428,25 +423,25 @@ NIL
 1
 
 SLIDER
-949
-98
-1121
-131
+848
+258
+1020
+291
 nbAgents
 nbAgents
 1
 100
-31.0
+100.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-1000
-315
-1126
-348
+848
+332
+974
+365
 Créer des Clients
 creerClient
 NIL
@@ -460,19 +455,49 @@ NIL
 1
 
 SLIDER
-1091
-170
-1263
-203
+848
+295
+1020
+328
 nbProduits
 nbProduits
 1
 100
-10.0
+1.0
 1
 1
 NIL
 HORIZONTAL
+
+TEXTBOX
+855
+62
+921
+80
+Installation
+11
+0.0
+1
+
+TEXTBOX
+853
+149
+1003
+167
+Lancement
+11
+0.0
+1
+
+TEXTBOX
+851
+241
+905
+259
+Clients
+11
+0.0
+1
 
 @#$#@#$#@
 # Présentation
@@ -482,7 +507,14 @@ Ceci est un modèle de supermarché. Il montre le comportement des clients en fo
 
 ## Installation
 
-Il suffit de cliquer sur SETUP. Cela créera le magasin et effacera le précédent (s'il existe).
+Il suffit de cliquer sur SETUP. Cela créera le magasin et effacera le précédent (s'il existe). Le magasin comporte différents types de cases :
+
+* Noir : Vide
+* Blanc : Rayon
+* Vert : Produit
+* Bleu : Caisse
+* Rouge : Entrée/Sortie
+	
 
 ## Lancement
 
