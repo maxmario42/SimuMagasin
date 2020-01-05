@@ -221,7 +221,7 @@ to client_step
     if not empty? listeVoir and [produit] of patch-here = first listeVoir
     [
       set listeVoir but-first listeVoir ;; On retire le produit de la liste
-      if achat? = false and (random-float 1) > first probaAchat[set achat? true]
+      if achat? = false and ((random-float 1) + fievreAcheteuse) > first probaAchat[set achat? true]
       set probaAchat but-first probaAchat
       chercherDest
     ]
@@ -431,7 +431,7 @@ nbAgents
 nbAgents
 1
 100
-100.0
+1.0
 1
 1
 NIL
@@ -439,9 +439,9 @@ HORIZONTAL
 
 BUTTON
 848
-332
+369
 974
-365
+402
 Créer des Clients
 creerClient
 NIL
@@ -499,6 +499,21 @@ Clients
 0.0
 1
 
+SLIDER
+847
+330
+1019
+363
+fievreAcheteuse
+fievreAcheteuse
+-1
+1
+0.01
+0.01
+1
+NIL
+HORIZONTAL
+
 @#$#@#$#@
 # Présentation
 Ceci est un modèle de supermarché. Il montre le comportement des clients en fonction de ceux dont ils ont besoin et de leur profil.
@@ -522,7 +537,9 @@ Vous pouvez cliquer sur GO pour que la simulation tourne en permanence ou sur GO
 
 ## Clients
 
-Avec le slider nbAgents, vous pouvez choisir le nombre de clients qui vont entrer puis avec le slider nbProduits, le nombre de produits qu'ils vont voir. Il vous suffit ensuite de cliquer sur CREER DES CLIENTS pour qu'ils apparaissent à l'entrée.
+Avec le slider nbAgents, vous pouvez choisir le nombre de clients qui vont entrer puis avec le slider nbProduits, le nombre de produits qu'ils vont voir. 
+Enfin, avec le slider fievreAcheteuse, vous pouvez régler le profil de client, la valeur de -1 fera en sorte qu'ils n'achètent rien et 1 tout ce qu'il y a sur leur liste.
+Il vous suffit ensuite de cliquer sur CREER DES CLIENTS pour qu'ils apparaissent à l'entrée.
 
 
 # Fonctionnement
