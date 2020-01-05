@@ -4,8 +4,12 @@ extensions [ table ]
 
 ;;variables globales
 ;; numéro du produit
+;; nombre d'achat fait
+;; nombre de clients passés
 globals [
   numeroProduit
+  nbAchats
+  nbClientsTot
 ]
 
 ;;variables de cellules :
@@ -41,6 +45,8 @@ clients-own[
 to setup
   clear-all
   set numeroProduit 1
+  set nbAchats 0
+  set nbClientsTot 0
   initialiserRayons
   initialiserSorties
   initialiserCaisses
@@ -97,6 +103,7 @@ to creerClient
     set color yellow - 2 + random 7
     move-to one-of patches with [sortie? = true] ;; Ils entrent par l'entrée
     chercherDest
+    set nbClientsTot nbClientsTot + 1
   ]
 end
 
@@ -184,7 +191,7 @@ to client_step
   (ifelse step < length path [
     let next_patch item step path
 
-    ; if the next patch has any client on it, we need to compute a new path
+    ; Si le prochain patch contient un client, nous devons calculer un nouveau chemin
     ifelse [not any? clients-here] of next_patch or next_patch = current_patch [
       face next_patch
       move-to next_patch
@@ -201,7 +208,6 @@ to client_step
       set success false
     ]
   ] length path = 0 [
-    ; show "destination is unreachable"
     set success false
   ])
 
@@ -210,18 +216,21 @@ to client_step
     ifelse successive_recompute < 50 [
       may_compute_new_path 0.9 destination
     ] [
-      show "MOVING OUT OF THE WAY"
+      show "HORS DE MA ROUTE"
       set tmp_dst one-of patches with [not rayon? and not any? clients-here and current_patch != dest]
       may_compute_new_path 0.9 tmp_dst
     ]
   ] [
     set successive_recompute 0
   ]
-  ;; arrive au produit désiré, achat
+  ;; arrive au produit désiré, achat éventuel
     if not empty? listeVoir and [produit] of patch-here = first listeVoir
     [
       set listeVoir but-first listeVoir ;; On retire le produit de la liste
-      if achat? = false and ((random-float 1) + fievreAcheteuse) > first probaAchat[set achat? true]
+      if ((random-float 1) + fievreAcheteuse) > first probaAchat[
+      set achat? true
+      set nbAchats nbAchats + 1
+    ]
       set probaAchat but-first probaAchat
       chercherDest
     ]
@@ -246,9 +255,9 @@ to may_compute_new_path [ sigma dest ]
   ]
 end
 
-; compute a new path to destination using the a star algorithm and reset step
-; returns a list starting with patch-here when a path has been found
-; returns an empty list when the destination is unreachable
+; Calculer un nouveau chemin vers la destination à l'aide de l'algorithme A* et réinitialiser l'étape
+; Renvoie une liste commençant par patch-here lorsqu'un chemin a été trouvé
+; Renvoie une liste vide lorsque la destination est inaccessible
 to compute_new_path [ dest ]
 
   set path (list)
@@ -397,9 +406,9 @@ NIL
 MONITOR
 1028
 270
-1145
+1130
 315
-clients presents
+Clients presents
 count clients
 17
 1
@@ -431,7 +440,7 @@ nbAgents
 nbAgents
 1
 100
-1.0
+100.0
 1
 1
 NIL
@@ -513,6 +522,28 @@ fievreAcheteuse
 1
 NIL
 HORIZONTAL
+
+MONITOR
+1028
+368
+1183
+413
+Achats depuis Installation
+nbAchats
+17
+1
+11
+
+MONITOR
+1028
+320
+1179
+365
+Clients depuis installation
+nbClientsTot
+17
+1
+11
 
 @#$#@#$#@
 # Présentation
